@@ -14,4 +14,7 @@ WriteMakefile(
         'Exporter::Lite'  => 0,
         'Class::Accessor' => 0,
     },
+    ($ExtUtils::MakeMaker::VERSION >= 6.31 ?
+      (LICENSE => 'perl') : ()
+    ),
 );

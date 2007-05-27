@@ -1,9 +1,9 @@
 --- #YAML:1.0
 name:                Win32-PowerPoint
-version:             0.04
+version:             0.05
 abstract:            helps to convert texts to PP slides
-license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.31
+license:             perl
+generated_by:        ExtUtils::MakeMaker version 6.32
 distribution_type:   module
 requires:     
     Class::Accessor:               0

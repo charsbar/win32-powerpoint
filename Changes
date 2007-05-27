@@ -1,5 +1,9 @@
 Revision history for Win32-PowerPoint
 
+0.05  2007/05/27
+  - maintenance release: no significant code changes
+  - added license info to Makefile.PL
+
 0.04  2007/01/17
   - added insert_before/insert_after methods (Austin Ekwebelam's request)
   - new_presentation/new_slide now accepts several options (ibid)
