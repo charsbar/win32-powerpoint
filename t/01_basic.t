@@ -11,11 +11,16 @@ unlink $ppt_file if -f $ppt_file;
 unlink $jpg_file if -f $jpg_file;
 
 my $pp;
+eval { $pp = Win32::PowerPoint->new };
+if ( $@ ) {
+  plan skip_all => 'This test requires MS PowerPoint';
+  exit;
+}
+
 my $initial_presentations;
 my $num_of_slides;
 my @tests = (
   sub {
-    $pp = Win32::PowerPoint->new;
     ok(ref $pp eq 'Win32::PowerPoint');
     diag('Hello, '.$pp->application->Name);
 

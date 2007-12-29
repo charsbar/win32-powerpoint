@@ -1,5 +1,9 @@
 Revision history for Win32-PowerPoint
 
+0.06  2007/12/29
+  - maintenance release: no significant code changes
+  - skip basic test if MS PowerPoint is not installed.
+
 0.05  2007/05/27
   - maintenance release: no significant code changes
   - added license info to Makefile.PL
