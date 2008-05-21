@@ -4,9 +4,10 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use File::Spec;
+use File::Basename;
 use Win32::OLE;
 use Win32::PowerPoint::Constants;
 use Win32::PowerPoint::Utils qw( RGB canonical_alignment canonical_pattern );
@@ -85,12 +86,22 @@ sub save_presentation {
   my ($self, $file) = @_;
 
   return unless $self->presentation;
+  return unless defined $file;
 
-  $self->presentation->SaveAs( File::Spec->rel2abs($file) );
+  my $absfile   = File::Spec->rel2abs($file);
+  my $directory = dirname( $file );
+  unless (-d $directory) {
+    require File::Path;
+    File::Path::mkpath($directory);
+  }
+
+  $self->presentation->SaveAs( $absfile );
 }
 
 sub close_presentation {
   my $self = shift;
+
+  return unless $self->presentation;
 
   $self->presentation->Close;
   $self->{presentation} = undef;
@@ -128,6 +139,7 @@ sub add_text {
   my ($self, $text, $options) = @_;
 
   return unless $self->slide;
+  return unless defined $text;
 
   $options = {} unless ref $options eq 'HASH';
 
@@ -173,6 +185,7 @@ sub insert_before {
   my ($self, $text, $options) = @_;
 
   return unless $self->slide;
+  return unless defined $text;
 
   $options = {} unless ref $options eq 'HASH';
 
@@ -193,6 +206,7 @@ sub insert_after {
   my ($self, $text, $options) = @_;
 
   return unless $self->slide;
+  return unless defined $text;
 
   $options = {} unless ref $options eq 'HASH';
 
@@ -211,6 +225,10 @@ sub insert_after {
 
 sub decorate_range {
   my ($self, $range, $options) = @_;
+
+  return unless defined $range;
+
+  $options = {} unless ref $options eq 'HASH';
 
   my ($true, $false) = ($self->c->True, $self->c->False);
 
