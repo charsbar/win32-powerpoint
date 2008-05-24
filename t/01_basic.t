@@ -2,6 +2,7 @@ use strict;
 use Test::More;
 
 use Win32::PowerPoint;
+use Win32::PowerPoint::Utils qw( convert_cygwin_path );
 use File::Spec;
 
 my $ppt_file = File::Spec->rel2abs('t/sample.ppt');
@@ -49,11 +50,13 @@ my @tests = (
     ok(!$@);
   },
   sub {
-    $pp->slide->Export($jpg_file,'jpg');
+    # need to convert explicitly
+    $pp->slide->Export(convert_cygwin_path($jpg_file),'jpg');
     ok(-f $jpg_file);
   },
 
   sub {
+    # no need to convert; will be done internally
     $pp->save_presentation($ppt_file);
     ok(-f $ppt_file);
   },

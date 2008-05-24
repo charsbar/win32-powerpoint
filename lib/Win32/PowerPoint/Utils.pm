@@ -5,7 +5,9 @@ use warnings;
 use Exporter::Lite;
 use Carp;
 
-our @EXPORT_OK = qw( RGB canonical_alignment canonical_pattern );
+our @EXPORT_OK = qw(
+  RGB canonical_alignment canonical_pattern convert_cygwin_path
+);
 
 sub RGB {
   my @color;
@@ -59,6 +61,14 @@ sub canonical_pattern {
   $pattern;
 }
 
+sub convert_cygwin_path {
+  my $path = shift;
+  return $path unless $^O eq 'cygwin';
+  $path =~ s{\\}{/}g;
+  $path =~ s{^/cygdrive/([a-z])/}{$1:/};
+  return $path;
+}
+
 1;
 
 __END__
@@ -83,6 +93,10 @@ color string like '255, 255, 255'. See also L<Win32::PowerPoint>.
 =head2 canonical_pattern
 
 Return canonicalized alignment/pattern name to get constant's value.
+
+=head2 convert_cygwin_path
+
+Convert a Cygwin-ish path to a Windows-ish path if the path has /cygdrive/ and a drive name.
 
 =head1 SEE ALSO
 

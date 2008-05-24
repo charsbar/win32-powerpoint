@@ -1,5 +1,9 @@
 Revision history for Win32-PowerPoint
 
+0.08  2008/05/25
+  - added convert_cygwin_path function to ::Utils
+    for better Cygwin support.
+
 0.07  2008/05/22
   - maintenance release: silence several warnings.
 

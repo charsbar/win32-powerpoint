@@ -4,13 +4,13 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use File::Spec;
 use File::Basename;
 use Win32::OLE;
 use Win32::PowerPoint::Constants;
-use Win32::PowerPoint::Utils qw( RGB canonical_alignment canonical_pattern );
+use Win32::PowerPoint::Utils qw( RGB canonical_alignment canonical_pattern convert_cygwin_path );
 
 use base qw( Class::Accessor::Fast );
 
@@ -95,7 +95,7 @@ sub save_presentation {
     File::Path::mkpath($directory);
   }
 
-  $self->presentation->SaveAs( $absfile );
+  $self->presentation->SaveAs( convert_cygwin_path( $absfile ) );
 }
 
 sub close_presentation {
@@ -455,6 +455,10 @@ returns current Slide object.
 =head2 c
 
 returns Win32::PowerPoint::Constants object.
+
+=head1 CAVEATS FOR CYGWIN USERS
+
+This module itself seems to work under the Cygwin environment. However, MS PowerPoint expects paths to be Windows-ish, namely without /cygdrive/. So, when you load or save a presentation, or import some materials with OLE (native) methods, you usually need to convert them by yourself. As of 0.08, Win32::PowerPoint::Utils has a C<convert_cygwin_path> function for this. Win32::PowerPoint methods use this function internally, so you don't need to convert paths explicitly.
 
 =head1 AUTHOR
 
