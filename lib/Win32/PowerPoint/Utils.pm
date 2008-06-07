@@ -64,9 +64,9 @@ sub canonical_pattern {
 sub convert_cygwin_path {
   my $path = shift;
   return $path unless $^O eq 'cygwin';
-  $path =~ s{\\}{/}g;
-  $path =~ s{^/cygdrive/([a-z])/}{$1:/};
-  return $path;
+  return Cygwin::posix_to_win_path($path, 'absolute') if $] >= 5.010;
+  require Filesys::CygwinPaths;
+  return Filesys::CygwinPaths::fullwin32path($path);
 }
 
 1;
@@ -96,7 +96,7 @@ Return canonicalized alignment/pattern name to get constant's value.
 
 =head2 convert_cygwin_path
 
-Convert a Cygwin-ish path to a Windows-ish path if the path has /cygdrive/ and a drive name.
+Converts a Cygwin-ish path to a Windows-ish path.
 
 =head1 SEE ALSO
 

@@ -1,5 +1,9 @@
 Revision history for Win32-PowerPoint
 
+0.08_01  2008/06/08
+  - better Cygwin support with Filesys::CygwinPaths and
+    Cygwin::posix_to_win_path (since perl 5.10)
+
 0.08  2008/05/25
   - added convert_cygwin_path function to ::Utils
     for better Cygwin support.

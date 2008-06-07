@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.08';
+our $VERSION = '0.08_01';
 
 use File::Spec;
 use File::Basename;
