@@ -8,11 +8,12 @@ WriteMakefile(
   VERSION_FROM        => 'lib/Win32/PowerPoint.pm',
   ABSTRACT_FROM       => 'lib/Win32/PowerPoint.pm',
   PREREQ_PM => {
-    'Class::Accessor' => 0,
-    'Exporter::Lite'  => 0,
-    'File::Spec'      => 0,
-    'Test::More'      => 0.47,
-    'Win32::OLE'      => 0,
+    'Class::Accessor'     => 0,
+    'Exporter::Lite'      => 0,
+    'File::Spec'          => 0,
+    'Test::More'          => '0.47',
+    'Test::UseAllModules' => '0.09',
+    'Win32::OLE'          => 0,
 
     (( $^O =~ /cygwin/ && $] < 5.010 )
       ? ( 'Filesys::CygwinPaths' => 0 )

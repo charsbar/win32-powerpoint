@@ -6,8 +6,19 @@ use Exporter::Lite;
 use Carp;
 
 our @EXPORT_OK = qw(
-  RGB canonical_alignment canonical_pattern convert_cygwin_path
+  RGB
+  canonical_alignment
+  canonical_pattern
+  canonical_datetime
+  convert_cygwin_path
+  _defined_or
 );
+
+sub _defined_or {
+  my ($target, $alternative) = @_;
+
+  return defined $target ? $target : $alternative;
+}
 
 sub RGB {
   my @color;
@@ -61,6 +72,14 @@ sub canonical_pattern {
   $pattern;
 }
 
+sub canonical_datetime {
+  my $pattern = shift;
+
+  $pattern =~ s/^(?:pp)?DateTime//gi;
+  $pattern ="ppDateTime$pattern";
+  $pattern;
+}
+
 sub convert_cygwin_path {
   my $path = shift;
   return $path unless $^O eq 'cygwin';
@@ -88,11 +107,9 @@ This is used internally in L<Win32::PowerPoint>.
 Computes RGB color number from an array(ref) of RGB components or
 color string like '255, 255, 255'. See also L<Win32::PowerPoint>.
 
-=head2 canonical_alignment
+=head2 canonical_alignment, canonical_pattern, canonical_datetime
 
-=head2 canonical_pattern
-
-Return canonicalized alignment/pattern name to get constant's value.
+Return canonicalized alignment/pattern/datetime format name to get constant's value.
 
 =head2 convert_cygwin_path
 

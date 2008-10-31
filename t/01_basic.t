@@ -32,6 +32,16 @@ my @tests = (
     ok($pp->application->Presentations->Count == $initial_presentations + 1);
   },
   sub {
+    eval {
+      $pp->set_master_footer(
+        visible      => 1,
+        text         => 'master footer',
+        slide_number => 1,
+      );
+    };
+    ok(!$@, $@);
+  },
+  sub {
     $num_of_slides = $pp->presentation->Slides->Count;
     $pp->new_slide;
     ok($pp->presentation->Slides->Count == $num_of_slides + 1);
@@ -47,12 +57,32 @@ my @tests = (
 
       $pp->slide->Shapes(3)->TextFrame->TextRange->Characters(1, 5)->Font->{Bold} = $pp->{c}->True;
     };
-    ok(!$@);
+    ok(!$@, $@);
   },
   sub {
     # need to convert explicitly
     $pp->slide->Export(convert_cygwin_path($jpg_file),'jpg');
     ok(-f $jpg_file);
+  },
+
+  sub {
+    # insert picture
+    $pp->new_slide;
+    eval {
+      $pp->add_picture($jpg_file, { top => 0, left => 0 });
+    };
+    ok(!$@, $@);
+  },
+  sub {
+    eval {
+      $pp->set_footer(
+        visible         => 1,
+        text            => 'slide footer',
+        datetime        => 1,
+        datetime_format => 'Mdyy',
+      );
+    };
+    ok(!$@, $@);
   },
 
   sub {

@@ -1,5 +1,10 @@
 Revision history for Win32-PowerPoint
 
+0.09  2008/10/31
+  - added add_picture and add_(master_)footer (David Kao's request)
+  - short instruction of how to use "Record New Macro" menu.
+  - minor refactoring
+
 0.08_01  2008/06/08
   - better Cygwin support with Filesys::CygwinPaths and
     Cygwin::posix_to_win_path (since perl 5.10)

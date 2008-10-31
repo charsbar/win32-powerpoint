@@ -1,5 +1,5 @@
-use Test::More tests => 1;
+use strict;
+use warnings;
+use Test::UseAllModules;
 
-BEGIN {
-  use_ok( 'Win32::PowerPoint' );
-}
+BEGIN { all_uses_ok(); }

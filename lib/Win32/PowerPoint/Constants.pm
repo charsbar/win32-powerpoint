@@ -3,7 +3,7 @@ package Win32::PowerPoint::Constants;
 use strict;
 use Carp;
 
-our $VERSION = '0.03';
+our $VERSION = '0.09';
 
 our $AUTOLOAD;
 
@@ -36,6 +36,22 @@ sub new {
 # ppMouseActivation
     ppMouseClick => 1,
     ppMouseOver  => 2,
+
+# ppDateTimeFormat
+    ppDateTimeMdyy           => 1,
+    ppDateTimeddddMMMMddyyyy => 2,
+    ppDateTimedMMMMyyyy      => 3,
+    ppDateTimeMMMMdyyyy      => 4,
+    ppDateTimedMMMyy         => 5,
+    ppDateTimeMMMMyy         => 6,
+    ppDateTimeMMyy           => 7,
+    ppDateTimeMMddyyHmm      => 8,
+    ppDateTimeMMddyyhmmAMPM  => 9,
+    ppDateTimeHmm            => 10,
+    ppDateTimeHmmss          => 11,
+    ppDateTimehmmAMPM        => 12,
+    ppDateTimehmmssAMPM      => 13,
+    ppDateTimeFormatMixed    => -2,
 
 # msoPatternType
     msoPattern10Percent              => 2,

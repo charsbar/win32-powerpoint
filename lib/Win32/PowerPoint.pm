@@ -3,16 +3,22 @@ package Win32::PowerPoint;
 use strict;
 use warnings;
 use Carp;
+use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.08_01';
+our $VERSION = '0.09';
 
 use File::Spec;
 use File::Basename;
 use Win32::OLE;
 use Win32::PowerPoint::Constants;
-use Win32::PowerPoint::Utils qw( RGB canonical_alignment canonical_pattern convert_cygwin_path );
-
-use base qw( Class::Accessor::Fast );
+use Win32::PowerPoint::Utils qw(
+  RGB
+  canonical_alignment
+  canonical_pattern
+  canonical_datetime
+  convert_cygwin_path
+  _defined_or
+);
 
 __PACKAGE__->mk_ro_accessors( qw( c application presentation slide ) );
 
@@ -68,17 +74,39 @@ sub new_presentation {
   $self->{presentation} = $self->application->Presentations->Add
     or die Win32::OLE->LastError;
 
-  if ( my $color = $options{background_forecolor} || $options{masterbkgforecolor} ) {
-    $self->presentation->SlideMaster->Background->Fill->ForeColor->{RGB} = RGB($color);
+  $self->_apply_background(
+    $self->presentation->SlideMaster->Background->Fill,
+    %options
+  );
+}
+
+sub _apply_background {
+  my ($self, $target, %options) = @_;
+
+  my $forecolor = _defined_or(
+    $options{background_forecolor},
+    $options{masterbkgforecolor}
+  );
+  if ( defined $forecolor ) {
+    $target->ForeColor->{RGB} = RGB($forecolor);
+    $self->slide->{FollowMasterBackground} = $self->c->msoFalse if $options{slide};
   }
 
-  if ( my $color = $options{background_backcolor} || $options{masterbkgbackcolor} ) {
-    $self->presentation->SlideMaster->Background->Fill->BackColor->{RGB} = RGB($color);
+  my $backcolor = _defined_or(
+    $options{background_backcolor},
+    $options{masterbkgbackcolor}
+  );
+  if ( defined $backcolor ) {
+    $target->BackColor->{RGB} = RGB($backcolor);
+    $self->slide->{FollowMasterBackground} = $self->c->msoFalse if $options{slide};
   }
 
-  if ( $options{pattern} ) {
-    my $method = canonical_pattern($options{pattern});
-    $self->presentation->SlideMaster->Background->Fill->Patterned( $self->c->$method );
+  if ( defined $options{pattern} ) {
+    if ( $options{pattern} =~ /\D/ ) {
+      my $method = canonical_pattern($options{pattern});
+      $options{pattern} = $self->c->$method;
+    }
+    $target->Patterned( $options{pattern} );
   }
 }
 
@@ -107,6 +135,52 @@ sub close_presentation {
   $self->{presentation} = undef;
 }
 
+sub set_master_footer {
+  my $self = shift;
+
+  return unless $self->presentation;
+  my $master_footers = $self->presentation->SlideMaster;
+  $self->_set_footer($master_footers, @_);
+}
+
+sub _set_footer {
+  my ($self, $slide, @args) = @_;
+
+  my $target = $slide->HeadersFooters;
+
+  my %options = ( @args == 1 and ref $args[0] eq 'HASH' ) ? %{ $args[0] } : @args;
+
+  if ( defined $options{visible} ) {
+    $target->Footer->{Visible} = $options{visible} ? $self->c->msoTrue : $self->c->msoFalse;
+  }
+
+  if ( defined $options{text} ) {
+    $target->Footer->{Text} = $options{text};
+  }
+
+  if ( defined $options{slide_number} ) {
+    $target->SlideNumber->{Visible} = $options{slide_number} ? $self->c->msoTrue : $self->c->msoFalse;
+  }
+
+  if ( defined $options{datetime} ) {
+    $target->DateAndTime->{Visible} = $options{datetime} ? $self->c->msoTrue : $self->c->msoFalse;
+  }
+
+  if ( defined $options{datetime_format} ) {
+    if ( !$options{datetime_format} ) {
+      $target->DateAndTime->{UseFormat} = $self->c->msoFalse;
+    }
+    else {
+      if ( $options{datetime_format} =~ /\D/ ) {
+        my $format = canonical_datetime($options{datetime_format});
+        $options{datetime_format} = $self->c->$format;
+      }
+      $target->DateAndTime->{UseFormat} = $self->c->msoTrue;
+      $target->DateAndTime->{Format}    = $options{datetime_format};
+    }
+  }
+}
+
 ##### slide #####
 
 sub new_slide {
@@ -119,20 +193,18 @@ sub new_slide {
     $self->c->LayoutBlank
   ) or die Win32::OLE->LastError;
 
-  if ( my $color = $options{background_forecolor} || $options{bkgforecolor} ) {
-    $self->slide->{FollowMasterBackground} = $self->c->msoFalse;
-    $self->slide->Background->Fill->ForeColor->{RGB} = RGB($color);
-  }
+  $self->_apply_background(
+    $self->slide->Background->Fill,
+    %options,
+    slide => 1,
+  );
+}
 
-  if ( my $color = $options{background_backcolor} || $options{bkgbackcolor} ) {
-    $self->slide->{FollowMasterBackground} = $self->c->msoFalse;
-    $self->slide->Background->Fill->BackColor->{RGB} = RGB($color);
-  }
+sub set_footer {
+  my $self = shift;
 
-  if ( $options{pattern} ) {
-    my $method = canonical_pattern($options{pattern});
-    $self->slide->Background->Fill->Patterned($self->c->$method);
-  }
+  return unless $self->slide;
+  $self->_set_footer($self->slide, @_);
 }
 
 sub add_text {
@@ -149,16 +221,16 @@ sub add_text {
   my $last  = $num_of_boxes ? $self->slide->Shapes($num_of_boxes) : undef;
   my ($left, $top, $width, $height);
   if ($last) {
-    $left   = $options->{left}   || $last->Left;
-    $top    = $options->{top}    || $last->Top + $last->Height + 20;
-    $width  = $options->{width}  || $last->Width;
-    $height = $options->{height} || $last->Height;
+    $left   = _defined_or($options->{left},   $last->Left);
+    $top    = _defined_or($options->{top},    $last->Top + $last->Height + 20);
+    $width  = _defined_or($options->{width},  $last->Width);
+    $height = _defined_or($options->{height}, $last->Height);
   }
   else {
-    $left   = $options->{left}   || 30;
-    $top    = $options->{top}    || 30;
-    $width  = $options->{width}  || 600;
-    $height = $options->{height} || 200;
+    $left   = _defined_or($options->{left},   30);
+    $top    = _defined_or($options->{top},    30);
+    $width  = _defined_or($options->{width},  600);
+    $height = _defined_or($options->{height}, 200);
   }
 
   my $new_textbox = $self->slide->Shapes->AddTextbox(
@@ -179,6 +251,38 @@ sub add_text {
   $frame->{AutoSize} = $self->c->AutoSizeShapeToFitText;
 
   return $new_textbox;
+}
+
+sub add_picture {
+  my ($self, $file, $options) = @_;
+
+  return unless $self->slide;
+  return unless defined $file and -f $file;
+
+  $options = {} unless ref $options eq 'HASH';
+
+  my $num_of_boxes = $self->slide->Shapes->Count;
+  my $last  = $num_of_boxes ? $self->slide->Shapes($num_of_boxes) : undef;
+  my ($left, $top);
+  if ($last) {
+    $left   = _defined_or($options->{left}, $last->Left);
+    $top    = _defined_or($options->{top},  $last->Top + $last->Height + 20);
+  }
+  else {
+    $left   = _defined_or($options->{left}, 30);
+    $top    = _defined_or($options->{top},  30);
+  }
+
+  my $new_picture = $self->slide->Shapes->AddPicture(
+    convert_cygwin_path( $file ),
+    ( $options->{link}
+      ? ( $self->c->msoTrue,  $self->c->msoFalse )
+      : ( $self->c->msoFalse, $self->c->msoTrue )
+    ),
+    $left, $top, $options->{width}, $options->{height}
+  );
+
+  return $new_picture;
 }
 
 sub insert_before {
@@ -243,8 +347,12 @@ sub decorate_range {
   $range->Font->{Name}        = $options->{font}       if $options->{font};
   $range->Font->Color->{RGB}  = RGB($options->{color}) if $options->{color};
 
-  my $method = canonical_alignment( $options->{alignment} || $options->{align} || 'left' );
-  $range->ParagraphFormat->{Alignment} = $self->c->$method;
+  my $align = $options->{alignment} || $options->{align} || 'left';
+  if ( $align =~ /\D/ ) {
+    my $method = canonical_alignment( $align );
+    $align = $self->c->$method;
+  }
+  $range->ParagraphFormat->{Alignment} = $align;
 
   $range->ActionSettings(
     $self->c->MouseClick
@@ -271,20 +379,34 @@ Win32::PowerPoint - helps to convert texts to PP slides
     # invoke (or connect to) PowerPoint
     my $pp = Win32::PowerPoint->new;
 
+    # set presentation-wide information
     $pp->new_presentation(
       background_forecolor => [255,255,255],
       background_backcolor => 'RGB(0, 0, 0)',
       pattern => 'Shingle',
     );
 
-    ... (load and parse your slide text)
+    # and master footer if you prefer (optional)
+    $pp->set_master_footer(
+      visible         => 1,
+      text            => 'My Slides',
+      slide_number    => 1,
+      datetime        => 1,
+      datetime_format => 'MMMMyy',
+    );
 
+    (load and parse your slide text)
+
+    # do whatever you want to do for each of your slides
     foreach my $slide (@slides) {
       $pp->new_slide;
 
       $pp->add_text($slide->title, { size => 40, bold => 1 });
       $pp->add_text($slide->body);
       $pp->add_text($slide->link,  { link => $slide->link });
+
+      # you may add pictures
+      $pp->add_picture($file, { left => 10, top => 10 });
     }
 
     $pp->save_presentation('slide.ppt');
@@ -311,7 +433,7 @@ Explicitly connects to (or invoke) PowerPoint.
 
 =head2 quit
 
-Explicitly disconnects and close PowerPoint this module (or you) invoked.
+Explicitly disconnects from PowerPoint, and closes it if this module invoked it.
 
 =head2 new_presentation (options)
 
@@ -342,7 +464,7 @@ are case-sensitive.
 
 Saves the presentation to where you specified. Accepts relative path.
 You might want to save it as .pps (slideshow) file to make it easy to
-show slides (it just starts full screen slideshow with doubleclick).
+show slides (it just starts full screen slideshow with a doubleclick).
 
 =head2 close_presentation
 
@@ -379,11 +501,55 @@ of the Textbox.
 
 See 'decorate_range' for other options.
 
+=head2 add_picture (file, options)
+
+Adds file to the slide. Options are:
+
+=over 4
+
+=item left, top, width, height
+
+of the picture. width and height are optional.
+
+=item link
+
+If set to true, the picture will be linked, otherwise, embedded.
+
+=back
+
 =head2 insert_before (text, options)
 
 =head2 insert_after (text, options)
 
 Prepends/Appends text to the current Textbox. See 'decorate_range' for options.
+
+=head2 set_footer, set_master_footer (options)
+
+Arranges (master) footer. Options are:
+
+=over 4
+
+=item visible
+
+If set to true, the footer(s) will be shown, and vice versa.
+
+=item text
+
+Specifies the text part of the footer(s)
+
+=item slide_number
+
+If set to true, slide number(s) will be shown, and vice versa.
+
+=item datetime
+
+If set to true, the date time part of the footer(s) will be shown, and vice versa.
+
+=item datetime_format
+
+Specifies the date time format of the footer(s) if you specify one of the registered ppDateTimeFormat name (see L<Win32::PowerPoint::Constants> or MSDN for details). If set to false, no format will be used.
+
+=back
 
 =head2 decorate_range (range, options)
 
@@ -423,19 +589,17 @@ hyperlink address of the Text.
 
 =head1 IF YOU WANT TO GO INTO DETAIL
 
-This module uses Win32::OLE internally. You can fully control PowerPoint
-through these accessors.
+This module uses L<Win32::OLE> internally. You can fully control PowerPoint through these accessors. If you don't know what to do with them, launch PowerPoint, and try C<Record New Macro> (from the C<Tools> menu, then, C<Macro>, and voila) and do what you want, and see what's recorded (from the C<Tools> menu, then C<Macro>, and C<Macro...> submenu. You'll see Visual Basic Editor screen). If you don't know how to convert Visual Basic statements to perl's OLE methods, see L<Win32::OLE> and other appropriate documents like intermediate books on PowerPoint and Visual Basic (after all, this module is just a thin wrapper of them).
 
 =head2 application
 
-returns Application object.
+returns an Application object.
 
     print $pp->application->Name;
 
 =head2 presentation
 
-returns current Presentation object (maybe ActivePresentation but that's
-not assured).
+returns a current Presentation object (maybe ActivePresentation but that's not assured).
 
     $pp->save_presentation('sample.ppt') unless $pp->presentation->Saved;
 
@@ -445,7 +609,7 @@ not assured).
 
 =head2 slide
 
-returns current Slide object.
+returns a current Slide object.
 
     $pp->slide->Export(".\\slide_01.jpg",'jpg');
 
