@@ -1,4 +1,5 @@
 Changes
+examples/create_ppt.pl
 lib/Win32/PowerPoint.pm
 lib/Win32/PowerPoint/Constants.pm
 lib/Win32/PowerPoint/Utils.pm
