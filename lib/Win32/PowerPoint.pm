@@ -5,7 +5,7 @@ use warnings;
 use Carp;
 use base qw( Class::Accessor::Fast );
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use File::Spec;
 use File::Basename;

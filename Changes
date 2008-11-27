@@ -1,5 +1,8 @@
 Revision history for Win32-PowerPoint
 
+0.10  not yet released
+  - added a sample converter that I'm using.
+
 0.09  2008/10/31
   - added add_picture and add_(master_)footer (David Kao's request)
   - short instruction of how to use "Record New Macro" menu.
