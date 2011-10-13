@@ -6,7 +6,10 @@ use Win32::PowerPoint;
 my $pp = Win32::PowerPoint->new;
 $pp->new_presentation;
 
-open my $fh, '<', shift or die $!;
+my $txtfile = shift or die "Usage: create_ppt <textfile>\n";
+die "$txtfile not exists" unless -s $txtfile;
+
+open my $fh, '<', $txtfile or die $!;
 my $new_slide = 1;
 my $text     = '';
 my $subtitle = '';
