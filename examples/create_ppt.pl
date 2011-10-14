@@ -15,19 +15,21 @@ my $text     = '';
 my $subtitle = '';
 while( <$fh> ) {
   chomp;
-  if ( $new_slide ) {
+  if ( /^\-\-\-\-/ ) {
     if ( $text or $subtitle ) {
+      $pp->new_slide;
       $text     =~ s/\n+$//;
       $subtitle =~ s/\n+$//;
-      $pp->add_text( $text, {
-        top    => 50,
-        left   => 50,
-        width  => 620,
-        height => 200,
-        align  => 'center',
-        size   => 72,
-        font   => 'Comic Sans MS',
-      }) if $text;
+      for (split /\n\n/s, $text) {
+        $pp->add_text( $_, {
+          left   => 50,
+          height => 90,
+          width  => 620,
+          align  => 'center',
+          size   => 72,
+          font   => 'Comic Sans MS',
+        });
+      }
       $pp->add_text( $subtitle, {
         top    => 450,
         left   => 50,
@@ -38,16 +40,11 @@ while( <$fh> ) {
         bold   => 1,
       }) if $subtitle;
     }
-    $pp->new_slide;
-    $new_slide = 0;
     $text = $subtitle = '';
-  }
-  if ( /^### (.+)/ ) {
-    $subtitle .= "$1\n";
     next;
   }
-  elsif ( /^\-\-\-\-/ ) {
-    $new_slide = 1;
+  elsif ( /^### (.+)/ ) {
+    $subtitle .= "$1\n";
     next;
   }
   $text .= "$_\n";
