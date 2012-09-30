@@ -27,7 +27,7 @@ while( <$fh> ) {
           width  => 620,
           align  => 'center',
           size   => 72,
-          font   => 'Comic Sans MS',
+          font   => 'Trebuchet MS',
         });
       }
       $pp->add_text( $subtitle, {
