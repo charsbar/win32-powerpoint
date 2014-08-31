@@ -1,6 +1,7 @@
 #!perl
 use strict;
 use warnings;
+use File::Basename;
 use Win32::PowerPoint;
 
 my $pp = Win32::PowerPoint->new;
@@ -51,4 +52,5 @@ while( <$fh> ) {
 }
 close $fh;
 
-$pp->save_presentation('slides.ppt');
+(my $pptfile = $txtfile) =~ s|\.txt$||;
+$pp->save_presentation($pptfile.'.ppt');
