@@ -3,7 +3,7 @@ package Win32::PowerPoint::Constants;
 use strict;
 use Carp;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 our $AUTOLOAD;
 

@@ -1,7 +1,10 @@
 Revision history for Win32-PowerPoint
 
-0.10  not yet released
+0.10  2014/11/24
   - added a sample converter that I'm using.
+  - fixed an issue due to the change of PowerPoint 2007+
+    that made texts added after a footer (almost) invisible
+    (reported by Jaakko Holmen)
 
 0.09  2008/10/31
   - added add_picture and add_(master_)footer (David Kao's request)

@@ -634,7 +634,7 @@ returns a current Slide object.
     $pp->slide->Shapes(1)->TextFrame->TextRange
        ->Characters(1, 5)->Font->{Bold} = $pp->c->True;
 
-As of 0.11, you can pass an index number to get an arbitrary Slide object.
+As of 0.10, you can pass an index number to get an arbitrary Slide object.
 
 =head2 c
 
