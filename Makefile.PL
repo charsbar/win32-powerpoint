@@ -8,7 +8,7 @@ WriteMakefile(
   VERSION_FROM        => 'lib/Win32/PowerPoint.pm',
   ABSTRACT_FROM       => 'lib/Win32/PowerPoint.pm',
   PREREQ_PM => {
-    'Exporter::Lite'      => 0,
+    'Exporter'            => '5.57',
     'File::Spec'          => 0,
     'Test::More'          => '0.47',
     'Test::UseAllModules' => '0.09',

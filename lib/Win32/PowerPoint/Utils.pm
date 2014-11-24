@@ -2,7 +2,7 @@ package Win32::PowerPoint::Utils;
 
 use strict;
 use warnings;
-use Exporter::Lite;
+use Exporter 'import';
 use Carp;
 
 our @EXPORT_OK = qw(
