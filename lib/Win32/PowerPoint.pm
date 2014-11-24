@@ -192,6 +192,7 @@ sub new_slide {
     $self->presentation->Slides->Count + 1,
     $self->c->LayoutBlank
   ) or die Win32::OLE->LastError;
+  $self->{last} = undef;
 
   $self->_apply_background(
     $self->slide->Background->Fill,
@@ -217,10 +218,8 @@ sub add_text {
 
   $text =~ s/\n/\r/gs;
 
-  my $num_of_boxes = $self->slide->Shapes->Count;
-  my $last  = $num_of_boxes ? $self->slide->Shapes($num_of_boxes) : undef;
   my ($left, $top, $width, $height);
-  if ($last) {
+  if (my $last = $self->{last}) {
     $left   = _defined_or($options->{left},   $last->Left);
     $top    = _defined_or($options->{top},    $last->Top + $last->Height + 20);
     $width  = _defined_or($options->{width},  $last->Width);
@@ -250,6 +249,8 @@ sub add_text {
   $frame->{AutoSize} = $self->c->AutoSizeNone;
   $frame->{AutoSize} = $self->c->AutoSizeShapeToFitText;
 
+  $self->{last} = $new_textbox;
+
   return $new_textbox;
 }
 
@@ -261,10 +262,8 @@ sub add_picture {
 
   $options = {} unless ref $options eq 'HASH';
 
-  my $num_of_boxes = $self->slide->Shapes->Count;
-  my $last  = $num_of_boxes ? $self->slide->Shapes($num_of_boxes) : undef;
   my ($left, $top);
-  if ($last) {
+  if (my $last = $self->{last}) {
     $left   = _defined_or($options->{left}, $last->Left);
     $top    = _defined_or($options->{top},  $last->Top + $last->Height + 20);
   }
@@ -281,6 +280,8 @@ sub add_picture {
     ),
     $left, $top, $options->{width}, $options->{height}
   );
+
+  $self->{last} = $new_picture;
 
   return $new_picture;
 }
