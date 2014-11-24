@@ -437,9 +437,7 @@ Win32::PowerPoint - helps to convert texts to PP slides
 
 =head1 DESCRIPTION
 
-Win32::PowerPoint mainly aims to help to convert L<Spork> (or Sporx)
-texts to PowerPoint slides. Though there's no converter at the moment,
-you can add texts to your new slides/presentation and save it. 
+Win32::PowerPoint helps you to create a PowerPoint presentation. You can add texts/pictures incrementally to your slides.
 
 =head1 METHODS
 
@@ -609,7 +607,7 @@ hyperlink address of the Text.
 
 =head1 IF YOU WANT TO GO INTO DETAIL
 
-This module uses L<Win32::OLE> internally. You can fully control PowerPoint through these accessors. If you don't know what to do with them, launch PowerPoint, and try C<Record New Macro> (from the C<Tools> menu, then, C<Macro>, and voila) and do what you want, and see what's recorded (from the C<Tools> menu, then C<Macro>, and C<Macro...> submenu. You'll see Visual Basic Editor screen). If you don't know how to convert Visual Basic statements to perl's OLE methods, see L<Win32::OLE> and other appropriate documents like intermediate books on PowerPoint and Visual Basic (after all, this module is just a thin wrapper of them).
+This module uses L<Win32::OLE> internally. You can fully control PowerPoint through the following accessors. See L<Win32::OLE> and other appropriate documents like intermediate books on PowerPoint and Visual Basic for details (after all, this module is just a thin wrapper of them). If you're still using old PowerPoint (2003 and older), try C<Record New Macro> (from the C<Tools> menu, then, C<Macro>, and voila) and do what you want, and see what's recorded (from the C<Tools> menu, then C<Macro>, and C<Macro...> submenu. You'll see Visual Basic Editor screen).
 
 =head2 application
 
@@ -635,6 +633,8 @@ returns a current Slide object.
 
     $pp->slide->Shapes(1)->TextFrame->TextRange
        ->Characters(1, 5)->Font->{Bold} = $pp->c->True;
+
+As of 0.11, you can pass an index number to get an arbitrary Slide object.
 
 =head2 c
 
