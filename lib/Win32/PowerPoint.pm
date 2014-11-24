@@ -3,7 +3,6 @@ package Win32::PowerPoint;
 use strict;
 use warnings;
 use Carp;
-use base qw( Class::Accessor::Fast );
 
 our $VERSION = '0.10';
 
@@ -20,8 +19,6 @@ use Win32::PowerPoint::Utils qw(
   _defined_or
 );
 
-__PACKAGE__->mk_ro_accessors( qw( c application presentation slide ) );
-
 sub new {
   my $class = shift;
   my $self  = bless {
@@ -37,7 +34,11 @@ sub new {
   return $self;
 }
 
+sub c { shift->{c} }
+
 ##### application #####
+
+sub application { shift->{application} }
 
 sub connect_or_invoke {
   my $self = shift;
@@ -78,6 +79,15 @@ sub new_presentation {
     $self->presentation->SlideMaster->Background->Fill,
     %options
   );
+}
+
+sub presentation {
+  my $self = shift;
+
+  return unless $self->{application};
+
+  $self->{presentation} ||= $self->application->ActivePresentation
+    or die Win32::OLE->LastError;
 }
 
 sub _apply_background {
@@ -182,6 +192,15 @@ sub _set_footer {
 }
 
 ##### slide #####
+
+sub slide {
+  my ($self, $id) = @_;
+  if ($id) {
+    $self->{slide} = $self->presentation->Slides->Item($id)
+      or die Win32::OLE->LastError;
+  }
+  $self->{slide};
+}
 
 sub new_slide {
   my $self = shift;
