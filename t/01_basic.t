@@ -26,10 +26,11 @@ my @tests = (
     diag('Hello, '.$pp->application->Name);
 
     $initial_presentations = $pp->application->Presentations->Count;
+    diag("initial presentation: $initial_presentations");
   },
   sub {
     $pp->new_presentation;
-    ok($pp->application->Presentations->Count == $initial_presentations + 1);
+    ok($pp->application->Presentations->Count == $initial_presentations + 1, "new presentation");
   },
   sub {
     eval {
@@ -39,10 +40,11 @@ my @tests = (
         slide_number => 1,
       );
     };
-    ok(!$@, $@);
+    ok(!$@, $@ ? $@ : "set master footer");
   },
   sub {
     $num_of_slides = $pp->presentation->Slides->Count;
+    diag("initial slides: $num_of_slides");
     $pp->new_slide;
     ok($pp->presentation->Slides->Count == $num_of_slides + 1);
   },
@@ -53,11 +55,10 @@ my @tests = (
     eval {
       $pp->add_text('Title',     { bold => 1, size => 40 });
       $pp->add_text('contents');
-      $pp->add_text('hyperlink', { link => 'http://www.example.com' });
-
-      $pp->slide->Shapes(3)->TextFrame->TextRange->Characters(1, 5)->Font->{Bold} = $pp->{c}->True;
+      my $link = $pp->add_text('hyperlink', { link => 'http://www.example.com' });
+      $link->TextFrame->TextRange->Characters(1, 5)->Font->{Bold} = $pp->{c}->True;
     };
-    ok(!$@, $@);
+    ok(!$@, $@ ? $@ : "added texts");
   },
   sub {
     # need to convert explicitly
@@ -71,7 +72,7 @@ my @tests = (
     eval {
       $pp->add_picture($jpg_file, { top => 0, left => 0 });
     };
-    ok(!$@, $@);
+    ok(!$@, $@ ? $@ : "added picture");
   },
   sub {
     eval {
@@ -82,7 +83,7 @@ my @tests = (
         datetime_format => 'Mdyy',
       );
     };
-    ok(!$@, $@);
+    ok(!$@, $@ ? $@ : "added footer");
   },
 
   sub {
