@@ -273,6 +273,38 @@ sub add_text {
   return $new_textbox;
 }
 
+sub add_line {
+  my ($self, $options) = @_;
+
+  return unless $self->slide;
+
+  $options = {} unless ref $options eq 'HASH';
+
+  my $new_line = $self->slide->Shapes->AddLine($options->{x1}, $options->{y1}, $options->{x2}, $options->{y2});
+
+  $new_line->{Line}{ForeColor}{RGB}=RGB($options->{forecolor}) if(defined $options->{forecolor});
+
+  $new_line->{Line}{Weight}=$options->{weight} if(defined $options->{weight});
+
+  return $new_line;
+}
+
+sub add_shape {
+  my ($self, $shape, $options) = @_;
+
+  return unless $self->slide;
+
+  $options = {} unless ref $options eq 'HASH';
+
+  my $new_shape = $self->slide->Shapes->AddShape($self->c->$shape, $options->{left}, $options->{top}, $options->{width}, $options->{height});
+
+  $new_shape->{Line}{ForeColor}{RGB}=RGB($options->{bordercolor}) if(defined $options->{bordercolor});
+
+  $new_shape->{Fill}{ForeColor}{RGB}=RGB($options->{fillcolor}) if(defined $options->{fillcolor});
+
+  return $new_shape;
+}
+
 sub add_picture {
   my ($self, $file, $options) = @_;
 
